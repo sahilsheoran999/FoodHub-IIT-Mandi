@@ -23,7 +23,7 @@ function Footer() {
                       
                       <p className="text-sm text-center text-white/90 font-medium">
                           &copy; 2025 FoodHub IIT Mandi - Built with ❤️ by 
-                          <span className="font-bold text-yellow-200 ml-1">Kartavya Sandhu</span>
+                          <span className="font-bold text-yellow-200 ml-1">Sahil Sheoran</span>
                       </p>
                       
                       <p className="text-xs text-center text-white/70">
