@@ -26,11 +26,23 @@ jobs:
         run: npm ci --prefix 'FoodHub IIT Mandi Frontend'
       - name: Build frontend
         run: npm run build --prefix 'FoodHub IIT Mandi Frontend'
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: 'FoodHub IIT Mandi Frontend/dist'
-          publish_branch: gh-pages
-          user_name: github-actions[bot]
-          user_email: github-actions[bot]@users.noreply.github.com
+      - name: Deploy to gh-pages branch
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+        run: |
+          set -e
+          cd "$GITHUB_WORKSPACE"
+          if git ls-remote --exit-code origin gh-pages; then
+            git fetch origin gh-pages:gh-pages
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+          fi
+          git rm -rf . || true
+          cp -r "FoodHub IIT Mandi Frontend/dist/." .
+          git add --all
+          git commit -m "Deploy frontend to GitHub Pages [skip ci]" || true
+          git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
