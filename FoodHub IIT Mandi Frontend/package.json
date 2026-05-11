@@ -5,7 +5,7 @@
   "description": "Frontend for FoodHub IIT Mandi food ordering application",
   "author": "Kartavya Sandhu <kartavya.sandhu@iitmandi.ac.in>",
   "type": "module",
-  "homepage": "https://7sandhu.github.io/FoodHub-IIT-Mandi",
+  "homepage": "https://sahilsheoran999.github.io/FoodHub-IIT-Mandi",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
