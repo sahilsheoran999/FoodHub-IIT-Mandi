@@ -2,7 +2,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
-const ServerConfig = require('./config/serverConfig');
+const { FRONTEND_URL, PORT: SERVER_PORT } = require('./config/serverConfig');
 const connectDB = require('./config/dbConfig');
 const userRouter = require('./routes/userRoute');
 const cartRouter = require('./routes/cartRoute');
@@ -14,8 +14,12 @@ const orderRouter = require('./routes/orderRoutes');
 const app = express();
 
 app.use(cors({
-    origin: 'https://7sandhu.github.io', // allow to server to accept request from different origin
-    credentials: true, // allow session cookie from browser to pass through
+    origin: FRONTEND_URL,
+    credentials: true,
+}));
+app.options('*', cors({
+    origin: FRONTEND_URL,
+    credentials: true,
 }));
 
 app.use(cookieParser());
@@ -37,7 +41,7 @@ app.get('/ping', (req, res) => {
     return res.json({message: "pong"});
 });
 
-const PORT = process.env.PORT || ServerConfig.PORT || 8080;
+const PORT = process.env.PORT || SERVER_PORT || 8080;
 
 app.get('/', (req, res) => {
     res.json({
@@ -54,9 +58,11 @@ app.get('/', (req, res) => {
     });
 });
 
-app.listen(PORT, async () => {
+async function startServer() {
     await connectDB();
-    console.log(`Server started at port ${PORT}...!!`);
+    app.listen(PORT, () => {
+        console.log(`Server started at port ${PORT}...!!`);
+    });
+}
 
-    
-});
+startServer();

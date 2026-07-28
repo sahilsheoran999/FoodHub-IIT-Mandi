@@ -1,4 +1,4 @@
-name: Deploy Frontend to GitHub Pages
+name: Full-stack CI and Frontend Deploy
 
 on:
   push:
@@ -13,7 +13,26 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  deploy:
+  backend-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 18
+      - name: Install backend dependencies
+        run: npm ci --prefix 'FoodHub IIT Mandi Backend'
+      - name: Validate backend source
+        env:
+          DB_URL: 'mongodb://localhost:27017/foodhub'
+          JWT_SECRET: 'dummy-secret'
+          FRONTEND_URL: 'https://sahilsheoran999.github.io/FoodHub-IIT-Mandi'
+          COOKIE_SECURE: 'false'
+        run: |
+          find 'FoodHub IIT Mandi Backend/src' -name '*.js' -print0 | xargs -0 node --check
+
+  deploy-frontend:
+    needs: backend-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -26,6 +45,8 @@ jobs:
         run: npm ci --prefix 'FoodHub IIT Mandi Frontend'
       - name: Build frontend
         run: npm run build --prefix 'FoodHub IIT Mandi Frontend'
+        env:
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL || 'http://localhost:8080' }}
       - name: Deploy to gh-pages branch
         env:
           GIT_AUTHOR_NAME: github-actions[bot]

@@ -30,9 +30,9 @@ A modern food ordering web application designed for IIT Mandi campus community. 
    # Copy the example environment file
    cp .env.example .env
    
-   # Edit .env and update VITE_BACKEND_URL if needed
+   # Edit .env and update VITE_BACKEND_URL to your backend API URL
    # For development: http://localhost:8080
-   # For production: your deployed backend URL
+   # For production: https://<your-production-backend-url>
    ```
 
 3. Start the development server:

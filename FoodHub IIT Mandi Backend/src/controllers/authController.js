@@ -5,8 +5,8 @@ const { loginUser } = require("../services/authService");
 async function logout(req, res) {
     res.cookie("authToken", "", {
         httpOnly: true,
-        secure: true, // Always true for HTTPS
-        sameSite: "none", // Must be 'none' for cross-site
+        secure: COOKIE_SECURE,
+        sameSite: "none",
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
     return res.status(200).json({
@@ -22,8 +22,8 @@ async function login(req, res) {
         const response = await loginUser(loginPayload);
         res.cookie("authToken", response.token, {
             httpOnly: true,
-            secure: true, // Always true for HTTPS
-            sameSite: "none", // Must be 'none' for cross-site
+            secure: COOKIE_SECURE,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000
         })
         return res.status(200).json({
