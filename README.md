@@ -62,9 +62,11 @@ This repository includes both the frontend and backend apps for the FoodHub IIT 
 ### Production deployment
 - The frontend is configured for GitHub Pages deployment from the `main` branch to `gh-pages`.
 - The backend can be deployed to any Node.js host such as Render, Railway, Vercel, or a VPS.
+- A backend Docker image is now built and published to GitHub Container Registry on every `main` push.
 
 ### Notes
 - The frontend reads the backend base URL from `VITE_BACKEND_URL`.
 - The backend uses `FRONTEND_URL` for CORS and cookie configuration.
+- Use the Docker image or a host-provided Node.js deployment to run the backend.
 
 *Developed with ❤️ for the IIT Mandi community*
