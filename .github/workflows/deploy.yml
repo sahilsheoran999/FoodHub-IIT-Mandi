@@ -7,32 +7,42 @@ on:
 permissions:
   contents: write
   pages: write
+  packages: write
   id-token: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  backend-check:
+  backend-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: 18
-      - name: Install backend dependencies
-        run: npm ci --prefix 'FoodHub IIT Mandi Backend'
-      - name: Validate backend source
-        env:
-          DB_URL: 'mongodb://localhost:27017/foodhub'
-          JWT_SECRET: 'dummy-secret'
-          FRONTEND_URL: 'https://sahilsheoran999.github.io/FoodHub-IIT-Mandi'
-          COOKIE_SECURE: 'false'
-        run: |
-          find 'FoodHub IIT Mandi Backend/src' -name '*.js' -print0 | xargs -0 node --check
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: github.actor
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: 'FoodHub IIT Mandi Backend'
+          file: 'FoodHub IIT Mandi Backend/Dockerfile'
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/foodhub-backend:latest
+            ghcr.io/${{ github.repository_owner }}/foodhub-backend:${{ github.sha }}
 
   deploy-frontend:
-    needs: backend-check
+    needs: backend-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

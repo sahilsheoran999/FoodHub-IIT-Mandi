@@ -61,17 +61,26 @@ Backend API for the FoodHub IIT Mandi food ordering application. Built with Node
    - For MongoDB Atlas: `mongodb+srv://username:password@cluster.mongodb.net/database`
 
 4. Start the development server:
-   PORT=8080
-   MONGODB_URL=your_mongodb_connection_string
-   JWT_SECRET=your_jwt_secret
-   ```
-
-3. Start the server:
    ```bash
    npm start
    ```
 
-4. API will be available at [http://localhost:8080](http://localhost:8080)
+5. API will be available at [http://localhost:8080](http://localhost:8080)
+
+## Docker deployment
+
+Build the backend container locally:
+```bash
+cd "FoodHub IIT Mandi Backend"
+docker build -t foodhub-backend .
+```
+
+Run the container with your environment variables:
+```bash
+docker run --env-file .env -p 8080:8080 foodhub-backend
+```
+
+The GitHub Actions workflow also builds and pushes a backend image to GitHub Container Registry on every push to `main`.
 
 ## Developer
 
