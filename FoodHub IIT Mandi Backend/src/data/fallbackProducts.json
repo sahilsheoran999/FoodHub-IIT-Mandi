@@ -1,0 +1,47 @@
+[
+  {
+    "_id": "prod-1",
+    "productName": "Margherita Pizza",
+    "description": "Classic pizza with tomato sauce, mozzarella, and basil.",
+    "price": 199,
+    "category": "Pizza",
+    "inStock": true,
+    "productImage": "/vite.svg"
+  },
+  {
+    "_id": "prod-2",
+    "productName": "Paneer Tikka Wrap",
+    "description": "Spicy paneer tikka rolled in a fresh tortilla with chutney.",
+    "price": 149,
+    "category": "Wrap",
+    "inStock": true,
+    "productImage": "/vite.svg"
+  },
+  {
+    "_id": "prod-3",
+    "productName": "Veggie Burger",
+    "description": "Crispy vegetable patty with lettuce, tomato, and special sauce.",
+    "price": 179,
+    "category": "Burger",
+    "inStock": true,
+    "productImage": "/vite.svg"
+  },
+  {
+    "_id": "prod-4",
+    "productName": "Masala Dosa",
+    "description": "Crispy rice crepe stuffed with spiced potato filling.",
+    "price": 129,
+    "category": "South Indian",
+    "inStock": true,
+    "productImage": "/vite.svg"
+  },
+  {
+    "_id": "prod-5",
+    "productName": "Cold Coffee",
+    "description": "Refreshing iced coffee topped with whipped cream.",
+    "price": 99,
+    "category": "Beverage",
+    "inStock": true,
+    "productImage": "/vite.svg"
+  }
+]

@@ -1,7 +1,28 @@
 const ProductRespository = require('../repositories/productRepository');
 const fs = require('fs/promises');
+const path = require('path');
+const mongoose = require('mongoose');
 const InternalServerError = require('../utils/internalServerError');
 const NotFoundError = require('../utils/notFoundError');
+
+const fallbackProductsPath = path.resolve(__dirname, '../data/fallbackProducts.json');
+
+async function loadFallbackProducts() {
+    try {
+        console.log('loadFallbackProducts: reading fallback file', fallbackProductsPath);
+        const fileContents = await fs.readFile(fallbackProductsPath, 'utf8');
+        const parsed = JSON.parse(fileContents);
+        if (Array.isArray(parsed)) {
+            console.log('loadFallbackProducts: parsed fallback array length', parsed.length);
+            return parsed;
+        }
+        console.log('loadFallbackProducts: fallback file parsed but is not an array');
+        return [];
+    } catch (error) {
+        console.log('loadFallbackProducts: error', error?.message || error);
+        return [];
+    }
+}
 
 async function createProduct(productDetails) {
     const imagePath = productDetails.imagePath;
@@ -40,11 +61,21 @@ async function getProductById(productId) {
 }
 
 async function getAllProductsData() {
-    const response = await ProductRespository.getAllProducts();
-    if(!response) {
-        throw new NotFoundError('Product');
+    if (mongoose.connection.readyState !== 1) {
+        console.log('getAllProductsData: mongodb not connected, using fallback');
+        return await loadFallbackProducts();
     }
-    return response;
+
+    try {
+        const response = await ProductRespository.getAllProducts();
+        if (response && response.length > 0) {
+            return response;
+        }
+        return await loadFallbackProducts();
+    } catch (error) {
+        console.log('getAllProductsData: repository error', error?.message || error);
+        return await loadFallbackProducts();
+    }
 }
 
 async function deleteProductById(productId) {
@@ -55,10 +86,10 @@ async function deleteProductById(productId) {
     return response;
 }
 
-
 module.exports = {
     createProduct,
     getProductById,
     deleteProductById,
-    getAllProductsData
+    getAllProductsData,
+    loadFallbackProducts
 }
