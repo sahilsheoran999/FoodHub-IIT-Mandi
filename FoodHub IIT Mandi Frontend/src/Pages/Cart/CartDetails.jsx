@@ -82,8 +82,8 @@ function CartDetails() {
                     >
                       <div className="space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0">
                         <img
-                          className="hidden w-24 h-24 md:block rounded-xl object-contain shadow-md hover:scale-110 transition-transform duration-300 bg-gray-50"
-                          src={ProductImage}
+                          className="hidden w-24 h-24 md:block rounded-xl object-cover shadow-md hover:scale-110 transition-transform duration-300 bg-gray-50"
+                          src={item?.product?.productImage || ProductImage}
                           alt={item?.product?.productName}
                         />
                         <div className="flex-1 w-full min-w-0 md:order-2 md:max-w-md">

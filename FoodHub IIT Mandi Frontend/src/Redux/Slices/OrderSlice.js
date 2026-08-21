@@ -6,9 +6,9 @@ const initialState = {
     ordersData: null
 }
 
-export const placeOrder = createAsyncThunk('/order/placeOrder', async () => {
+export const placeOrder = createAsyncThunk('/order/placeOrder', async (orderDetails) => {
     try {
-        const apiResponse = await axiosInstance.post(`/orders`);
+        const apiResponse = await axiosInstance.post(`/orders`, orderDetails);
         toast.success('Order created successfully');
         return apiResponse;
     } catch(error) {

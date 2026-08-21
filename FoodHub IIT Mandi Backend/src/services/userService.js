@@ -35,6 +35,15 @@ async function registerUser(userDetails) {
 }
 
 
+async function getUserById(userId) {
+    const user = await findUser({ _id: userId });
+    if(!user) {
+        throw { reason: 'User not found', statusCode: 404 };
+    }
+    return user;
+}
+
 module.exports = {
-    registerUser
+    registerUser,
+    getUserById
 };

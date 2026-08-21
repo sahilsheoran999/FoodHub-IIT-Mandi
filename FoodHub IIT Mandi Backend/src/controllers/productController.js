@@ -6,9 +6,11 @@ async function addProduct(req, res) {
             productName: req.body.productName,
             description: req.body.description,
             imagePath: req.file?.path,
+            productImage: req.body.productImage, // direct URL support
             price: req.body.price,
             category: req.body.category, // if category is undefined, veg will be stored
-            inStock: req.body.inStock // if inStock is undefined then true will be stored
+            inStock: req.body.inStock, // if inStock is undefined then true will be stored
+            canteen: req.body.canteen
         });
         return res.status(201).json({
             success: true,

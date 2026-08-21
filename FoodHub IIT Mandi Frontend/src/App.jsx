@@ -6,10 +6,12 @@ import Login from './Pages/Auth/Login'
 import NotFound from './Pages/NotFound'
 import Denied from './Pages/Denied'
 import AddProduct from './Pages/Admin/Addproduct'
+import AdminOrders from './Pages/Admin/AdminOrders'
 import ProductDetails from './Pages/Products/ProductDetails'
 import CartDetails from './Pages/Cart/CartDetails'
 import Order from './Pages/Order/Order'
 import OrderSuccess from './Pages/Order/OrderSuccess'
+import OrderHistory from './Pages/Order/OrderHistory'
 import RequireAuth from './Components/Auth/RequireAuth'
 
 function App() {
@@ -27,12 +29,14 @@ function App() {
           <Route path='/order' element={<Order />} />
 
           <Route path='/order/success' element={<OrderSuccess />} />
+          <Route path='/orders' element={<OrderHistory />} />
           <Route path='/cart' element={<CartDetails />} />
 
         </Route>
         
 
         <Route path='/admin/addProduct' element={<AddProduct />} />
+        <Route path='/admin/orders' element={<AdminOrders />} />
         <Route path='/product/:productId' element={<ProductDetails />} />
         <Route path='*' element={<NotFound />} />
       </Routes>

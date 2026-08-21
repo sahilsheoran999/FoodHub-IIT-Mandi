@@ -2,7 +2,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
-const { FRONTEND_URL, PORT: SERVER_PORT } = require('./config/serverConfig');
+const ServerConfig = require('./config/serverConfig');
 const connectDB = require('./config/dbConfig');
 const userRouter = require('./routes/userRoute');
 const cartRouter = require('./routes/cartRoute');
@@ -14,12 +14,8 @@ const orderRouter = require('./routes/orderRoutes');
 const app = express();
 
 app.use(cors({
-    origin: FRONTEND_URL,
-    credentials: true,
-}));
-app.options('*', cors({
-    origin: FRONTEND_URL,
-    credentials: true,
+    origin: ServerConfig.FRONTEND_URL, // allow to server to accept request from different origin
+    credentials: true, // allow session cookie from browser to pass through
 }));
 
 app.use(cookieParser());
@@ -41,7 +37,7 @@ app.get('/ping', (req, res) => {
     return res.json({message: "pong"});
 });
 
-const PORT = process.env.PORT || SERVER_PORT || 8080;
+const PORT = process.env.PORT || ServerConfig.PORT || 8080;
 
 app.get('/', (req, res) => {
     res.json({
@@ -58,11 +54,9 @@ app.get('/', (req, res) => {
     });
 });
 
-async function startServer() {
+app.listen(PORT, async () => {
     await connectDB();
-    app.listen(PORT, () => {
-        console.log(`Server started at port ${PORT}...!!`);
-    });
-}
+    console.log(`Server started at port ${PORT}...!!`);
 
-startServer();
+    
+});

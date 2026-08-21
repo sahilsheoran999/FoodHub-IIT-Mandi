@@ -4,17 +4,28 @@ import FoodIcon from '../assets/Images/food.svg';
 import CartIcon from '../assets/Images/cart.svg';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { logout } from '../Redux/Slices/AuthSlice';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getCartDetails } from '../Redux/Slices/CartSlice';
 
 // eslint-disable-next-line react/prop-types
 function Layout({ children }) {
 
-    const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+    const { isLoggedIn, role } = useSelector((state) => state.auth);
     const { cartsData } = useSelector((state) => state.cart);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
+    const [isCartShaking, setIsCartShaking] = useState(false);
+
+    const totalCartItems = cartsData?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
+
+    useEffect(() => {
+        if (totalCartItems > 0) {
+            setIsCartShaking(true);
+            const timer = setTimeout(() => setIsCartShaking(false), 500);
+            return () => clearTimeout(timer);
+        }
+    }, [totalCartItems]);
 
     // Function to handle navigation to home sections
     const navigateToHomeSection = (sectionId) => {
@@ -85,6 +96,32 @@ function Layout({ children }) {
                             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-200 transition-all duration-300 group-hover:w-full"></span>
                         </li>
 
+                        {isLoggedIn && role === 'ADMIN' && (
+                            <>
+                                <li className='hover:text-yellow-200 cursor-pointer transition-all duration-300 hover:scale-110 hover:-translate-y-1 font-medium relative group'
+                                    onClick={() => navigate('/admin/orders')}
+                                >
+                                    <p className="relative z-10">Orders Dashboard</p>
+                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-200 transition-all duration-300 group-hover:w-full"></span>
+                                </li>
+                                <li className='hover:text-yellow-200 cursor-pointer transition-all duration-300 hover:scale-110 hover:-translate-y-1 font-medium relative group'
+                                    onClick={() => navigate('/admin/addProduct')}
+                                >
+                                    <p className="relative z-10">Add Product</p>
+                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-200 transition-all duration-300 group-hover:w-full"></span>
+                                </li>
+                            </>
+                        )}
+
+                        {isLoggedIn && role !== 'ADMIN' && (
+                            <li className='hover:text-yellow-200 cursor-pointer transition-all duration-300 hover:scale-110 hover:-translate-y-1 font-medium relative group'
+                                onClick={() => navigate('/orders')}
+                            >
+                                <p className="relative z-10">My Orders</p>
+                                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-200 transition-all duration-300 group-hover:w-full"></span>
+                            </li>
+                        )}
+
                     </ul>
                 </div>
 
@@ -111,7 +148,7 @@ function Layout({ children }) {
                         {isLoggedIn && (
                             <li>
                                 <Link to={'/cart'} className="relative group">
-                                    <div className='flex items-center hover:text-yellow-200 transition-all duration-300 transform hover:scale-110 cursor-pointer bg-white bg-opacity-20 rounded-lg px-3 py-2 hover:bg-opacity-30'>
+                                    <div className={`flex items-center hover:text-yellow-200 transition-all duration-300 transform hover:scale-110 cursor-pointer bg-white bg-opacity-20 rounded-lg px-3 py-2 hover:bg-opacity-30 ${isCartShaking ? 'animate-shake' : ''}`}>
                                         <img src={CartIcon} className='w-8 h-8 inline filter brightness-0 invert transition-transform duration-300 group-hover:rotate-12' />
                                         {cartsData?.items?.length > 0 && (
                                             <span className='ml-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-orange-800 px-2 py-1 rounded-full text-sm font-bold animate-pulse shadow-lg'>

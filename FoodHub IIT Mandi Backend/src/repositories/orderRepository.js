@@ -50,9 +50,19 @@ async function updateOrderStatus(orderId, status) {
 }
 
 
+async function getAllOrdersFromDb() {
+    try {
+        const orders = await Order.find({}).populate('items.product').populate('user', 'firstName lastName email mobileNumber').sort({ createdAt: -1 });
+        return orders;
+    } catch(error) {
+        throw new InternalServerError();
+    }
+}
+
 module.exports = {
     createNewOrder,
     getOrderById,
     getOrdersByUserId,
-    updateOrderStatus
+    updateOrderStatus,
+    getAllOrdersFromDb
 }

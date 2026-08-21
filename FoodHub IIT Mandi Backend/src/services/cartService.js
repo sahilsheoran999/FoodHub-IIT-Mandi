@@ -1,13 +1,14 @@
-const { getCartByUserId, clearCart } = require("../repositories/cartRepository");
+const { getCartByUserId, clearCart, createcart } = require("../repositories/cartRepository");
 const { getProductById } = require("../repositories/productRepository");
 const AppError = require("../utils/appError");
 const BadRequestError = require("../utils/badRequestError");
 const NotFoundError = require("../utils/notFoundError");
 
 async function getCart(userId) {
-    const cart = await getCartByUserId(userId);
+    let cart = await getCartByUserId(userId);
     if(!cart) {
-        throw new NotFoundError("Cart");
+        await createcart(userId);
+        cart = await getCartByUserId(userId);
     }
     return cart;
 }

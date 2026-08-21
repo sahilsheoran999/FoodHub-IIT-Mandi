@@ -7,7 +7,7 @@
     "start": "node src/index.js",
     "dev": "npx nodemon src/index.js"
   },
-  "author": "Kartavya Sandhu <kartavya.sandhu@iitmandi.ac.in>",
+  "author": "Sahil Sheoran <sahilsheoran34741@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",

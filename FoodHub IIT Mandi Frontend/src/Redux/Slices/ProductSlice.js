@@ -32,6 +32,9 @@ export const addProduct = createAsyncThunk('/products/addProduct', async (produc
         formData.append('price', productData.price);
         formData.append('quantity', productData.quantity);
         formData.append('category', productData.category);
+        if (productData.canteen) {
+            formData.append('canteen', productData.canteen);
+        }
         if (productData.productImage) {
             formData.append('productImage', productData.productImage);
         }

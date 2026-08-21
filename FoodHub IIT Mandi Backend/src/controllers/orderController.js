@@ -1,9 +1,9 @@
-const { createOrder, updateOrder, getAllOrdersCreatedByUser, getOrderDetailsById } = require("../services/orderService");
+const { createOrder, updateOrder, getAllOrdersCreatedByUser, getOrderDetailsById, getAllOrders } = require("../services/orderService");
 const AppError = require("../utils/appError");
 
 async function createNewOrder(req, res) {
     try {
-        const order = await createOrder(req.user.id, req.body.paymentMethod);
+        const order = await createOrder(req.user.id, req.body.paymentMethod, req.body.address);
         return res.status(201).json({
             success: true,
             message: "Successfully created the order",
@@ -142,10 +142,30 @@ async function changeOrderStatus(req, res) {
 }
 
 
+async function getAllOrdersAdmin(req, res) {
+    try {
+        const orders = await getAllOrders();
+        return res.status(200).json({
+            success: true,
+            message: "Successfully fetched all orders for admin",
+            error: {},
+            data: orders
+        })
+    } catch(error) {
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+            error: error,
+            data: {}
+        })
+    }
+}
+
 module.exports = {
     createNewOrder,
     changeOrderStatus,
     cancelOrder,
     getOrder,
-    getAllOrdersByUser
+    getAllOrdersByUser,
+    getAllOrdersAdmin
 }

@@ -6,21 +6,36 @@ import Layout from "../Layouts/Layout";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { getAllProducts } from "../Redux/Slices/ProductSlice";
-import { addProductToCart, getCartDetails } from "../Redux/Slices/CartSlice";
+import { addProductToCart, getCartDetails, removeProductFromCart } from "../Redux/Slices/CartSlice";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import { restaurants, isCanteenOpen } from '../Helpers/canteenHelper';
 
 function Home() {
     const dispatch = useDispatch();
     const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('all');
     const { productsData } = useSelector((state) => state.product);
     const { isLoggedIn } = useSelector((state) => state.auth);
+    const { cartsData } = useSelector((state) => state.cart);
 
     // Quick Add to Cart function
     const handleQuickAdd = async (productId) => {
         if (!isLoggedIn) {
             toast.error('Please login to add items to cart');
             return;
+        }
+
+        // Check if canteen is open
+        const product = Array.isArray(productsData) ? productsData.find(p => p._id === productId) : null;
+        if (product && product.canteen) {
+            const canteen = restaurants.find(r => r.name === product.canteen);
+            if (canteen && !isCanteenOpen(canteen.timing)) {
+                toast.error(`${product.canteen} is currently closed. Cannot add items.`);
+                return;
+            }
         }
         
         try {
@@ -33,116 +48,57 @@ function Home() {
         }
     };
 
-    // IIT Mandi Local Restaurants Data
-    const restaurants = [
-        {
-            id: 1,
-            name: "Drongo Canteen",
-            type: "Campus Canteen",
-            timing: "8:00 AM - 10:00 PM",
-            specialties: ["Patiz", "Burger", "Tea", "Coffee", "Fast Food"],
-            image: PizzaImage,
-            description: "Popular campus canteen known for quick bites and beverages"
-        },
-        {
-            id: 2,
-            name: "Monal Canteen",
-            type: "Campus Canteen",
-            timing: "7:00 AM - 11:00 PM",
-            specialties: ["Parantha", "Egg Roll", "Paneer Roll", "Noodles", "Momos", "South Indian"],
-            image: PizzaImage,
-            description: "Diverse menu with North and South Indian options"
-        },
-        {
-            id: 3,
-            name: "Baba Ka Dhaba",
-            type: "Local Restaurant",
-            timing: "11:00 AM - 10:00 PM",
-            specialties: ["Indian Veg Menu", "Chicken Items", "Dal-Rice", "Roti"],
-            image: PizzaImage,
-            description: "Authentic Indian cuisine with both vegetarian and non-vegetarian options"
-        },
-        {
-            id: 4,
-            name: "Himalayan Cafe",
-            type: "Local Restaurant",
-            timing: "9:00 AM - 9:00 PM",
-            specialties: ["Indian Veg Menu", "Mountain Cuisine", "Organic Food"],
-            image: PizzaImage,
-            description: "Fresh vegetarian meals with a mountain touch"
-        },
-        {
-            id: 5,
-            name: "Bake O Mocha",
-            type: "Cafe & Bakery",
-            timing: "10:00 AM - 11:00 PM",
-            specialties: ["Snacks", "Burger", "Beverages", "Pastry", "Sandwich", "Garlic Bread"],
-            image: PizzaImage,
-            description: "Modern cafe with snacks, beverages and baked goods"
-        },
-        {
-            id: 6,
-            name: "Pizza Bite",
-            type: "Campus Restaurant",
-            timing: "5:00 PM - 11:00 PM",
-            specialties: ["Pizza", "Garlic Bread", "Italian Cuisine", "Fast Food"],
-            image: PizzaImage,
-            description: "Popular pizza joint near campus with fresh Italian-style pizzas"
-        },
-        {
-            id: 7,
-            name: "The Daig",
-            type: "Campus Canteen",
-            timing: "8:00 AM - 10:00 PM",
-            specialties: ["Tandoori Roti", "Chaap", "Momos", "Chowmein", "North Indian"],
-            image: PizzaImage,
-            description: "Authentic North Indian food with tandoor specialties"
-        },
-        {
-            id: 8,
-            name: "Griffon Canteen",
-            type: "Campus Canteen",
-            timing: "7:00 AM - 11:00 PM",
-            specialties: ["Samosa", "Patiz", "Chai", "Budget Meals", "Quick Snacks"],
-            image: PizzaImage,
-            description: "Budget-friendly canteen for students with affordable quick bites"
-        },
-        {
-            id: 9,
-            name: "Markandey",
-            type: "Campus Restaurant",
-            timing: "11:00 AM - 10:00 PM",
-            specialties: ["Butter Chicken", "Biryani", "Premium Curries", "Main Course"],
-            image: PizzaImage,
-            description: "Premium dining with authentic Indian main course dishes"
-        },
-        {
-            id: 10,
-            name: "Tragopan Canteen",
-            type: "Campus Canteen",
-            timing: "8:00 AM - 9:00 PM",
-            specialties: ["Jain Food", "Pure Veg", "No Onion/Garlic", "Healthy Options"],
-            image: PizzaImage,
-            description: "Specialized Jain and pure vegetarian food without onion/garlic"
-        },
-        {
-            id: 11,
-            name: "Bulbul Canteen",
-            type: "Campus Canteen",
-            timing: "7:00 AM - 10:00 PM",
-            specialties: ["Paratha", "Rolls", "Dal-Rice", "Indian Breakfast"],
-            image: PizzaImage,
-            description: "Traditional Indian cuisine with fresh parathas and regional specialties"
+    // Quick Remove from Cart function
+    const handleQuickRemove = async (productId) => {
+        if (!isLoggedIn) {
+            toast.error('Please login');
+            return;
         }
-    ];
+        
+        try {
+            const response = await dispatch(removeProductFromCart(productId));
+            if(response?.payload?.data?.success) {
+                dispatch(getCartDetails());
+            }
+        } catch (error) {
+            // Error handling
+        }
+    };
+
+    // Helper to get product cart quantity
+    const getProductCartQuantity = (productId) => {
+        if (!isLoggedIn || !cartsData || !Array.isArray(cartsData.items)) return 0;
+        const item = cartsData.items.find(i => i.product?._id === productId);
+        return item ? item.quantity : 0;
+    };
+
+    // IIT Mandi Local Restaurants Data imported from canteenHelper
 
     useEffect(() => {
-        dispatch(getAllProducts());
-    }, [dispatch]);
+        async function fetchProducts() {
+            setLoading(true);
+            await dispatch(getAllProducts());
+            if (isLoggedIn) {
+                await dispatch(getCartDetails());
+            }
+            setLoading(false);
+        }
+        fetchProducts();
+    }, [dispatch, isLoggedIn]);
 
-    // Ensure productsData is an array and handle undefined/null cases
-    const products = Array.isArray(productsData) ? productsData : [];
-    const inStockProducts = products.filter(item => item.inStock);
+    // Ensure productsData is an array and filter by selected restaurant, search query, and category
+    const products = Array.isArray(productsData) 
+        ? productsData.filter(item => {
+            if (!item) return false;
+            const matchesCanteen = item.canteen === selectedRestaurant?.name;
+            const matchesSearch = !searchTerm || 
+                (item.productName && item.productName.toLowerCase().includes(searchTerm.toLowerCase())) || 
+                (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()));
+            const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+            return matchesCanteen && matchesSearch && matchesCategory;
+        }) 
+        : [];
+    const inStockProducts = products.filter(item => item && item.inStock);
 
     return (
         <Layout>
@@ -208,12 +164,21 @@ function Home() {
                         /* Restaurant Grid */
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {restaurants.map((restaurant, index) => (
-                                <div key={restaurant.id} className="card-hover bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full animate-fade-in-up" style={{animationDelay: `${index * 0.1}s`}}>
-                                    <img
-                                        src={restaurant.image}
-                                        alt={restaurant.name}
-                                        className="w-full h-48 object-contain bg-gray-100"
-                                    />
+                                <div key={restaurant.id} className="card-hover bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full animate-fade-in-up group" style={{animationDelay: `${index * 0.1}s`}}>
+                                    <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
+                                        <img
+                                            src={restaurant.image}
+                                            alt={restaurant.name}
+                                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold shadow-md uppercase tracking-wider ${
+                                            isCanteenOpen(restaurant.timing) 
+                                                ? 'bg-green-500 text-white' 
+                                                : 'bg-red-500 text-white'
+                                        }`}>
+                                            {isCanteenOpen(restaurant.timing) ? '● Open Now' : '○ Closed'}
+                                        </div>
+                                    </div>
                                     <div className="p-6 flex flex-col flex-grow">
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="text-xl font-bold text-gray-900">{restaurant.name}</h3>
@@ -240,7 +205,11 @@ function Home() {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => setSelectedRestaurant(restaurant)}
+                                            onClick={() => {
+                                                setSelectedRestaurant(restaurant);
+                                                setSearchTerm('');
+                                                setSelectedCategory('all');
+                                            }}
                                             className="btn-secondary w-full mt-auto"
                                         >
                                             View Menu
@@ -252,20 +221,30 @@ function Home() {
                     ) : (
                         /* Selected Restaurant Menu */
                         <div className="animate-fade-in-up">
-                            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-                                <div className="flex items-center justify-between mb-4">
+                            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-8 mb-8 border border-white/20 bg-gradient-to-br from-white/90 via-orange-50/20 to-white/90 relative overflow-hidden">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                                     <div>
-                                        <h3 className="text-2xl font-bold text-gray-900">{selectedRestaurant.name}</h3>
-                                        <p className="text-gray-600">{selectedRestaurant.description}</p>
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            <span className="font-medium">Timing:</span> {selectedRestaurant.timing}
+                                        <h3 className="text-3xl font-extrabold text-gray-950">{selectedRestaurant.name}</h3>
+                                        <p className="text-gray-600 mt-1">{selectedRestaurant.description}</p>
+                                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5 font-semibold">
+                                            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Timing: {selectedRestaurant.timing}
                                         </p>
                                     </div>
                                     <button
-                                        onClick={() => setSelectedRestaurant(null)}
-                                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors duration-300"
+                                        onClick={() => {
+                                            setSelectedRestaurant(null);
+                                            setSearchTerm('');
+                                            setSelectedCategory('all');
+                                        }}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 hover:border-orange-500 hover:text-orange-600 font-semibold text-xs rounded-xl transition-all duration-300 transform active:scale-95 text-gray-600 bg-white shadow-sm self-start sm:self-auto"
                                     >
-                                        ← Back to Restaurants
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                        </svg>
+                                        Back to Restaurants
                                     </button>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
@@ -275,14 +254,87 @@ function Home() {
                                         </span>
                                     ))}
                                 </div>
+                                {!isCanteenOpen(selectedRestaurant.timing) && (
+                                    <div className="mt-4 bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 flex items-center gap-3 animate-pulse">
+                                        <svg className="w-6 h-6 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div>
+                                            <p className="font-bold text-sm">Canteen is Currently Closed</p>
+                                            <p className="text-xs">Ordering is disabled because this canteen is closed. Please check back during open hours.</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+ 
+                            {/* Search and Category Filter Section */}
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-white p-4 rounded-xl shadow-md border border-gray-100 animate-fadeIn">
+                                {/* Search Input */}
+                                <div className="relative flex-grow max-w-md">
+                                    <input
+                                        type="text"
+                                        placeholder="Search menu items..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-gray-700 transition-all text-sm shadow-inner"
+                                    />
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </span>
+                                </div>
+                                
+                                {/* Category Filter Pills */}
+                                <div className="flex flex-wrap gap-2">
+                                    {[
+                                        { value: 'all', label: '✨ All' },
+                                        { value: 'veg', label: '🟢 Veg' },
+                                        { value: 'non-veg', label: '🔴 Non-Veg' },
+                                        { value: 'drinks', label: '🥤 Drinks' },
+                                        { value: 'sides', label: '🍟 Sides' },
+                                        { value: 'dessert', label: '🍰 Desserts' }
+                                    ].map((category) => (
+                                        <button
+                                            key={category.value}
+                                            onClick={() => setSelectedCategory(category.value)}
+                                            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300 border ${
+                                                selectedCategory === category.value
+                                                    ? 'bg-orange-500 text-white border-orange-500 shadow-md scale-105'
+                                                    : 'bg-white hover:bg-orange-50 text-gray-700 border-gray-200 hover:border-orange-200'
+                                            }`}
+                                        >
+                                            {category.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Menu Items for Selected Restaurant */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {products.length === 0 ? (
+                                {loading ? (
                                     <div className="col-span-full text-center py-8">
                                         <div className="loading-spinner mx-auto mb-4"></div>
                                         <p className="text-gray-500">Loading delicious menu items...</p>
+                                    </div>
+                                ) : products.length === 0 ? (
+                                    <div className="col-span-full text-center py-12 bg-white rounded-2xl shadow-md border border-gray-100 p-8">
+                                        <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <p className="text-gray-600 font-semibold text-lg mb-1">No items found</p>
+                                        <p className="text-gray-500 text-sm mb-4">We couldn't find any dishes matching your active search or filters.</p>
+                                        {(searchTerm || selectedCategory !== 'all') && (
+                                            <button
+                                                onClick={() => {
+                                                    setSearchTerm('');
+                                                    setSelectedCategory('all');
+                                                }}
+                                                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 shadow-md hover:shadow-lg"
+                                            >
+                                                Clear Active Filters
+                                            </button>
+                                        )}
                                     </div>
                                 ) : (
                                     products.map((item) => {
@@ -290,12 +342,14 @@ function Home() {
                                             return null;
                                         }
                                         return (
-                                            <div className="card-hover bg-white rounded-lg shadow-lg overflow-hidden" key={item._id}>
-                                                <img
-                                                    src={ProductImage}
-                                                    alt={item.productName || 'Product'}
-                                                    className="w-full h-48 object-contain bg-gray-50"
-                                                />
+                                            <div className="card-hover bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col h-full group" key={item._id}>
+                                                <div className="relative w-full h-48 overflow-hidden bg-gray-50">
+                                                    <img
+                                                        src={item.productImage || ProductImage}
+                                                        alt={item.productName || 'Product'}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    />
+                                                </div>
                                                 <div className="p-4">
                                                     <div className="flex items-center justify-between mb-2">
                                                         <h4 className="text-lg font-semibold text-gray-900">
@@ -311,19 +365,50 @@ function Home() {
                                                     <div className="flex gap-2">
                                                         <Link
                                                             to={`/product/${item._id}`}
-                                                            className="btn-primary flex-1 text-center"
+                                                            className="btn-primary flex-grow text-center text-xs py-2 font-semibold"
                                                         >
                                                             View Details
                                                         </Link>
-                                                        <button 
-                                                            onClick={() => handleQuickAdd(item._id)}
-                                                            className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-4 py-2 rounded transition-all duration-200 flex items-center gap-1 transform hover:scale-105 active:scale-95 hover:shadow-lg active:shadow-sm"
-                                                        >
-                                                            <svg className="w-4 h-4 transition-transform duration-200 group-active:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                            </svg>
-                                                            Quick Add
-                                                        </button>
+                                                        {getProductCartQuantity(item._id) > 0 && isCanteenOpen(selectedRestaurant.timing) ? (
+                                                            <div className="flex items-center bg-green-50 border border-green-200 rounded-lg overflow-hidden shadow-inner">
+                                                                <button
+                                                                    onClick={() => handleQuickRemove(item._id)}
+                                                                    className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 font-bold transition-all text-xs"
+                                                                >
+                                                                    −
+                                                                </button>
+                                                                <span className="px-3 text-green-800 font-bold text-xs select-none">
+                                                                    {getProductCartQuantity(item._id)}
+                                                                </span>
+                                                                <button
+                                                                    onClick={() => handleQuickAdd(item._id)}
+                                                                    className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 font-bold transition-all text-xs"
+                                                                >
+                                                                    +
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <button 
+                                                                onClick={() => handleQuickAdd(item._id)}
+                                                                disabled={!isCanteenOpen(selectedRestaurant.timing)}
+                                                                className={`px-4 py-2 rounded transition-all duration-200 flex items-center gap-1 transform active:scale-95 text-xs font-semibold ${
+                                                                    isCanteenOpen(selectedRestaurant.timing)
+                                                                        ? 'bg-green-500 hover:bg-green-600 text-white hover:scale-105 hover:shadow-lg'
+                                                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                                }`}
+                                                            >
+                                                                {isCanteenOpen(selectedRestaurant.timing) ? (
+                                                                    <>
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                                        </svg>
+                                                                        Quick Add
+                                                                    </>
+                                                                ) : (
+                                                                    'Closed'
+                                                                )}
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

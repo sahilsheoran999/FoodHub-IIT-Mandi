@@ -147,14 +147,14 @@ function SignUpPresentation({ handleUserInput, handleFormSubmit }) {
                     </svg>
                  </div>
 
-                    <form className="flex flex-col w-full p-8 mt-10 bg-white shadow-xl rounded-xl lg:w-2/6 md:w-1/2 md:ml-auto md:mt-0 border border-gray-200">
+                    <form onSubmit={handleFormSubmit} className="flex flex-col w-full p-8 mt-10 bg-white shadow-xl rounded-xl lg:w-2/6 md:w-1/2 md:ml-auto md:mt-0 border border-gray-200">
                         <div className="text-center mb-6">
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Join FoodHub IIT Mandi</h2>
                             <p className="text-gray-600">Create your account to order delicious food from campus restaurants</p>
                         </div>
 
                         <div className="relative mb-4">
-                            <label htmlFor="firstName" className="text-sm font-medium leading-7 text-gray-700">First Name <span className="text-red-500">*</span></label>
+                            <label htmlFor="firstName" className="text-sm font-semibold leading-7 text-gray-700">First Name <span className="text-red-500">*</span></label>
                             <input 
                                 type="text" 
                                 id="firstName" 
@@ -167,7 +167,7 @@ function SignUpPresentation({ handleUserInput, handleFormSubmit }) {
                         </div>
 
                         <div className="relative mb-4">
-                            <label htmlFor="lastName" className="text-sm font-medium leading-7 text-gray-700">Last Name</label>
+                            <label htmlFor="lastName" className="text-sm font-semibold leading-7 text-gray-700">Last Name</label>
                             <input 
                                 type="text" 
                                 id="lastName" 
@@ -179,7 +179,7 @@ function SignUpPresentation({ handleUserInput, handleFormSubmit }) {
                         </div>
 
                         <div className="relative mb-4">
-                            <label htmlFor="email" className="text-sm font-medium leading-7 text-gray-700">Email <span className="text-red-500">*</span></label>
+                            <label htmlFor="email" className="text-sm font-semibold leading-7 text-gray-700">Email <span className="text-red-500">*</span></label>
                             <input 
                                 type="email" 
                                 id="email" 
@@ -191,7 +191,7 @@ function SignUpPresentation({ handleUserInput, handleFormSubmit }) {
                         </div>
 
                         <div className="relative mb-4">
-                            <label htmlFor="mobileNumber" className="text-sm font-medium leading-7 text-gray-700">Mobile Number <span className="text-red-500">*</span></label>
+                            <label htmlFor="mobileNumber" className="text-sm font-semibold leading-7 text-gray-700">Mobile Number <span className="text-red-500">*</span></label>
                             <input 
                                 type="tel" 
                                 id="mobileNumber" 
@@ -204,7 +204,7 @@ function SignUpPresentation({ handleUserInput, handleFormSubmit }) {
                         </div>
 
                         <div className="relative mb-6">
-                            <label htmlFor="password" className="text-sm font-medium leading-7 text-gray-700">Password <span className="text-red-500">*</span></label>
+                            <label htmlFor="password" className="text-sm font-semibold leading-7 text-gray-700">Password <span className="text-red-500">*</span></label>
                             <input 
                                 type="password" 
                                 id="password" 
@@ -216,7 +216,7 @@ function SignUpPresentation({ handleUserInput, handleFormSubmit }) {
                         </div>
 
                         <button 
-                            onClick={handleFormSubmit}
+                            type="submit"
                             className="w-full px-8 py-3 text-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-amber-500 border-0 rounded-lg shadow-md transition-all duration-200 hover:from-orange-600 hover:to-amber-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-orange-200">
                             Create Account
                         </button>

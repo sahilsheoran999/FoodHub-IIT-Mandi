@@ -32,6 +32,10 @@ const productSchema = new mongoose.Schema({
         type: Boolean,
         required: [true, "In stock status is required"],
         default: true
+    },
+    canteen: {
+        type: String,
+        trim: true
     }
 }, {
     timestamps: true

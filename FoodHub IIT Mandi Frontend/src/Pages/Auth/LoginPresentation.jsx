@@ -143,7 +143,7 @@ function LoginPresentation({ handleFormSubmit, handleUserInput }) {
                     </svg>
                 </div>
 
-                    <form className="flex flex-col w-full p-8 mt-10 bg-white shadow-xl rounded-xl lg:w-2/6 md:w-1/2 md:ml-auto md:mt-0 border border-gray-200">
+                    <form onSubmit={handleFormSubmit} className="flex flex-col w-full p-8 mt-10 bg-white shadow-xl rounded-xl lg:w-2/6 md:w-1/2 md:ml-auto md:mt-0 border border-gray-200">
                         <div className="text-center mb-6">
                             <h2 className="text-2xl font-bold text-gray-900 title-font">Welcome Back!</h2>
                             <p className="text-gray-600 mt-2">Sign in to FoodHub IIT Mandi</p>
@@ -151,7 +151,7 @@ function LoginPresentation({ handleFormSubmit, handleUserInput }) {
 
                         
                         <div className="relative mb-4">
-                            <label htmlFor="email" className="text-sm font-medium leading-7 text-gray-700">Email <span className="text-red-500">*</span></label>
+                            <label htmlFor="email" className="text-sm font-semibold leading-7 text-gray-700">Email <span className="text-red-500">*</span></label>
                             <input 
                                 type="email" 
                                 id="email" 
@@ -163,7 +163,7 @@ function LoginPresentation({ handleFormSubmit, handleUserInput }) {
                         </div>
 
                         <div className="relative mb-6">
-                            <label htmlFor="password" className="text-sm font-medium leading-7 text-gray-700">Password <span className="text-red-500">*</span></label>
+                            <label htmlFor="password" className="text-sm font-semibold leading-7 text-gray-700">Password <span className="text-red-500">*</span></label>
                             <input 
                                 type="password" 
                                 id="password" 
@@ -176,7 +176,6 @@ function LoginPresentation({ handleFormSubmit, handleUserInput }) {
 
                         <button 
                             type="submit"
-                            onClick={handleFormSubmit}
                             className="w-full px-8 py-3 text-lg font-semibold text-white bg-gradient-to-r from-orange-500 to-amber-500 border-0 rounded-lg shadow-md transition-all duration-200 hover:from-orange-600 hover:to-amber-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-orange-200">
                             Sign In
                         </button>

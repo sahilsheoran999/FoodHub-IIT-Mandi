@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../../Layouts/Layout";
 import Food from '../../assets/Images/food.svg';
 import { addProduct } from "../../Redux/Slices/ProductSlice";
+import toast from "react-hot-toast";
 
 function AddProduct() {
     const dispatch = useDispatch();
@@ -15,7 +16,9 @@ function AddProduct() {
         price: '',
         quantity: '',
         category: 'veg',
-        productImage: null
+        canteen: 'Drongo Canteen',
+        productImage: '',
+        imageType: 'url'
     });
 
     function handleUserInput(e) {
@@ -29,8 +32,8 @@ function AddProduct() {
     async function onFormSubmit(e) {
         e.preventDefault();
         
-        if (!productData.productName || !productData.price) {
-            toast.error('Product name and price are required');
+        if (!productData.productName || !productData.price || !productData.quantity) {
+            toast.error('Product name, price and quantity are required');
             return;
         }
 
@@ -43,9 +46,11 @@ function AddProduct() {
                     price: '',
                     quantity: '',
                     category: 'veg',
-                    productImage: null
+                    canteen: 'Drongo Canteen',
+                    productImage: '',
+                    imageType: 'url'
                 });
-                navigate('/'); // or wherever you want to redirect
+                navigate('/');
             }
         } catch (error) {
             // Error handling for product addition
@@ -54,22 +59,22 @@ function AddProduct() {
 
     return (
         <Layout>
-           <section className="py-12">
-           <div className="flex items-center justify-center px-5">
-                <div className="md:w-2/6">
-                    <img src={Food} />
+           <section className="py-12 bg-gradient-to-br from-gray-50 to-orange-50 min-h-screen">
+           <div className="container mx-auto flex flex-col md:flex-row items-center justify-center px-5 gap-8">
+                <div className="w-full md:w-1/2 flex justify-center">
+                    <img src={Food} className="w-96 h-auto drop-shadow-2xl hover:rotate-6 transition-transform duration-500" alt="Food logo" />
                 </div>
-                <div className="max-w-md md:w-4/6 mx-auto mt-8 bg-white p-4">
-                    <h2 className="mb-4 text-2xl font-semibold">
-                        Add product
+                <div className="w-full md:w-1/2 max-w-md bg-white p-8 rounded-2xl shadow-xl hover-lift border border-gray-100">
+                    <h2 className="mb-6 text-2xl font-bold text-gray-900">
+                        Add New Product
                     </h2>
 
-                    <form>
+                    <form onSubmit={onFormSubmit}>
                         {/* product name */}
                         <div className="mb-4">
                             <label 
                                 htmlFor="productName" 
-                                className="block text-sm font-medium text-gray-700"
+                                className="block text-sm font-semibold text-gray-700 mb-1"
                             >
                                 Product name <span className="text-red-500">*</span>
                             </label>
@@ -80,8 +85,10 @@ function AddProduct() {
                                 maxLength={20}
                                 name="productName" 
                                 id="productName" 
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                                
+                                value={productData.productName}
+                                onChange={handleUserInput}
+                                placeholder="e.g. Margherita Pizza"
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all" 
                             />
                         </div>
 
@@ -89,7 +96,7 @@ function AddProduct() {
                         <div className="mb-4">
                             <label 
                                 htmlFor="description" 
-                                className="block text-sm font-medium text-gray-700"
+                                className="block text-sm font-semibold text-gray-700 mb-1"
                             >
                                 Description
                             </label>
@@ -100,8 +107,10 @@ function AddProduct() {
                                 maxLength={60}
                                 name="description" 
                                 id="description" 
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                                
+                                value={productData.description}
+                                onChange={handleUserInput}
+                                placeholder="Brief description of ingredients"
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all" 
                             />
                         </div>
 
@@ -109,7 +118,7 @@ function AddProduct() {
                         <div className="mb-4">
                             <label 
                                 htmlFor="price" 
-                                className="block text-sm font-medium text-gray-700"
+                                className="block text-sm font-semibold text-gray-700 mb-1"
                             >
                                 Product price <span className="text-red-500">*</span>
                             </label>
@@ -118,8 +127,10 @@ function AddProduct() {
                                 required
                                 name="price" 
                                 id="price" 
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                                
+                                value={productData.price}
+                                onChange={handleUserInput}
+                                placeholder="Price in INR"
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all" 
                             />
                         </div>
 
@@ -127,7 +138,7 @@ function AddProduct() {
                         <div className="mb-4">
                             <label 
                                 htmlFor="quantity" 
-                                className="block text-sm font-medium text-gray-700"
+                                className="block text-sm font-semibold text-gray-700 mb-1"
                             >
                                 Product quantity <span className="text-red-500">*</span>
                             </label>
@@ -136,56 +147,121 @@ function AddProduct() {
                                 required
                                 name="quantity" 
                                 id="quantity" 
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                                
+                                value={productData.quantity}
+                                onChange={handleUserInput}
+                                placeholder="Available count"
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all" 
                             />
                         </div>
 
                         {/* category */}
-                        <div className="mb-2">
+                        <div className="mb-4">
                             <label 
                                 htmlFor="category" 
-                                className="block text-sm font-medium text-gray-700"
+                                className="block text-sm font-semibold text-gray-700 mb-1"
                             >
                                 Select Category <span className="text-red-500">*</span>
                             </label>
                             <select 
                                 name="category" 
                                 id="category" 
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                value={productData.category}
+                                onChange={handleUserInput}
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all bg-white"
                             >
                                 <option value="veg">Vegetarian</option>
                                 <option value="non-veg">Non-Vegetarian</option>
                                 <option value="drinks">Soft drinks</option>
                                 <option value="sides">Sides</option>
+                                <option value="dessert">Dessert</option>
                             </select>
                         </div>
 
-
-                        {/* image */}
+                        {/* canteen */}
                         <div className="mb-4">
                             <label 
-                                htmlFor="productImage" 
-                                className="block text-sm font-medium text-gray-700"
+                                htmlFor="canteen" 
+                                className="block text-sm font-semibold text-gray-700 mb-1"
                             >
-                                Product image <span className="text-red-600">(.jpg, .png, .jpeg )</span>
+                                Select Canteen <span className="text-red-500">*</span>
                             </label>
-                            <input 
-                                type="file" 
-                                required
-                                name="productImage" 
-                                id="productImage" 
-                                accept=".jpg, .jpeg, .png"
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                                
-                            /> 
+                            <select 
+                                name="canteen" 
+                                id="canteen" 
+                                value={productData.canteen}
+                                onChange={handleUserInput}
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all bg-white"
+                            >
+                                <option value="Drongo Canteen">Drongo Canteen</option>
+                                <option value="Monal Canteen">Monal Canteen</option>
+                                <option value="Baba Ka Dhaba">Baba Ka Dhaba</option>
+                                <option value="Himalayan Cafe">Himalayan Cafe</option>
+                                <option value="Bake O Mocha">Bake O Mocha</option>
+                                <option value="Pizza Bite">Pizza Bite</option>
+                                <option value="The Daig">The Daig</option>
+                                <option value="Griffon Canteen">Griffon Canteen</option>
+                                <option value="Markandey">Markandey</option>
+                                <option value="Tragopan Canteen">Tragopan Canteen</option>
+                                <option value="Bulbul Canteen">Bulbul Canteen</option>
+                            </select>
+                        </div>
+
+                        {/* image source selection */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Image Source
+                            </label>
+                            <div className="flex gap-4 mb-3">
+                                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="imageType" 
+                                        value="url" 
+                                        checked={productData.imageType === 'url'}
+                                        onChange={handleUserInput}
+                                        className="text-orange-500 focus:ring-orange-500"
+                                    />
+                                    Image URL
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="imageType" 
+                                        value="file" 
+                                        checked={productData.imageType === 'file'}
+                                        onChange={handleUserInput}
+                                        className="text-orange-500 focus:ring-orange-500"
+                                    />
+                                    File Upload
+                                </label>
+                            </div>
+
+                            {productData.imageType === 'url' ? (
+                                <input 
+                                    type="text"
+                                    name="productImage"
+                                    placeholder="https://images.unsplash.com/..."
+                                    value={typeof productData.productImage === 'string' ? productData.productImage : ''}
+                                    onChange={handleUserInput}
+                                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all"
+                                />
+                            ) : (
+                                <input 
+                                    type="file" 
+                                    name="productImage" 
+                                    id="productImage" 
+                                    accept=".jpg, .jpeg, .png"
+                                    onChange={handleUserInput}
+                                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all" 
+                                /> 
+                            )}
                         </div>
 
                         <button
                             type="submit"
-                            className="w-full bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white p-3 rounded-lg hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition duration-300 ease-in-out font-semibold shadow-md"
                         >
-                            Add product
+                            Add Product
                         </button>
                     </form>
                 </div>
