@@ -1,13 +1,20 @@
 const { getCartByUserId, clearCart } = require("../repositories/cartRepository");
 const NotFoundError = require("../utils/notFoundError");
 const BadRequestError = require('../utils/badRequestError');
+const UnAuthorisedError = require('../utils/unauthorisedError');
 const { findUser } = require("../repositories/userRepository");
 const { createNewOrder, getOrdersByUserId, getOrderById, updateOrderStatus, getAllOrdersFromDb } = require("../repositories/orderRepository");
 const InternalServerError = require("../utils/internalServerError");
 
-async function createOrder(userId, paymentMethod, address) {
+const VALID_STATUS_TRANSITIONS = {
+    "ORDERED": ["PROCESSING", "CANCELLED"],
+    "PROCESSING": ["OUT_FOR_DELIVERY"],
+    "OUT_FOR_DELIVERY": ["DELIVERED"],
+    "DELIVERED": [],
+    "CANCELLED": []
+};
 
-    
+async function createOrder(userId, paymentMethod, address) {
     const cart = await getCartByUserId(userId);
     if(!cart) {
         throw new NotFoundError("Cart");
@@ -42,7 +49,16 @@ async function createOrder(userId, paymentMethod, address) {
     });
 
     orderObject.address = address || user.address;
-    orderObject.paymentMethod = paymentMethod;
+
+    // Canonicalize paymentMethod (D003: normalize OFFLINE to CASH)
+    let normalizedPayment = paymentMethod ? paymentMethod.toUpperCase().trim() : "CASH";
+    if (normalizedPayment === "OFFLINE") {
+        normalizedPayment = "CASH";
+    }
+    if (normalizedPayment !== "CASH" && normalizedPayment !== "ONLINE") {
+        throw new BadRequestError(["Invalid payment method. Allowed methods: CASH, ONLINE"]);
+    }
+    orderObject.paymentMethod = normalizedPayment;
 
     const order = await createNewOrder(orderObject);
 
@@ -53,7 +69,6 @@ async function createOrder(userId, paymentMethod, address) {
     await clearCart(userId);
 
     return order;
-
 }
 
 async function getAllOrdersCreatedByUser(userId) {
@@ -64,20 +79,63 @@ async function getAllOrdersCreatedByUser(userId) {
     return orders;
 }
 
-async function getOrderDetailsById(orderId) {
+async function getOrderDetailsById(orderId, userId, userRole) {
     const order = await getOrderById(orderId);
     if(!order) {
         throw new NotFoundError("Orders");
     }
+
+    // D001: IDOR check - allow access only if owner or admin
+    if (userId && userRole !== 'ADMIN') {
+        const orderUserId = order.user?._id ? order.user._id.toString() : order.user.toString();
+        if (orderUserId !== userId.toString()) {
+            throw new UnAuthorisedError();
+        }
+    }
+
     return order;
 }
 
-async function updateOrder(orderId, status) {
-    const order = await updateOrderStatus(orderId, status);
-    if(!order) {
+async function cancelUserOrder(orderId, userId, userRole) {
+    const order = await getOrderById(orderId);
+    if (!order) {
         throw new NotFoundError("Orders");
     }
-    return order;
+
+    // D001: IDOR check - allow cancellation only if owner or admin
+    if (userId && userRole !== 'ADMIN') {
+        const orderUserId = order.user?._id ? order.user._id.toString() : order.user.toString();
+        if (orderUserId !== userId.toString()) {
+            throw new UnAuthorisedError();
+        }
+    }
+
+    // D004: Cancellation only allowed when status is ORDERED
+    if (order.status !== "ORDERED") {
+        throw new BadRequestError([`Cannot cancel order with status ${order.status}. Only ORDERED orders can be cancelled.`]);
+    }
+
+    const updatedOrder = await updateOrderStatus(orderId, "CANCELLED");
+    return updatedOrder;
+}
+
+async function updateOrder(orderId, status) {
+    const order = await getOrderById(orderId);
+    if (!order) {
+        throw new NotFoundError("Orders");
+    }
+
+    // D004: Check valid status transitions
+    const allowedTransitions = VALID_STATUS_TRANSITIONS[order.status] || [];
+    if (!allowedTransitions.includes(status)) {
+        throw new BadRequestError([`Invalid status transition from ${order.status} to ${status}`]);
+    }
+
+    const updatedOrder = await updateOrderStatus(orderId, status);
+    if(!updatedOrder) {
+        throw new NotFoundError("Orders");
+    }
+    return updatedOrder;
 }
 
 async function getAllOrders() {
@@ -92,6 +150,7 @@ module.exports = {
     createOrder,
     getAllOrdersCreatedByUser,
     getOrderDetailsById,
+    cancelUserOrder,
     updateOrder,
     getAllOrders
 }

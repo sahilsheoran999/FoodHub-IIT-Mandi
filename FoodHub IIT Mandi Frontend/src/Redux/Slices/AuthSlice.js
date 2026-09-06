@@ -60,14 +60,17 @@ const AuthSlice = createSlice({
         .addCase(login.fulfilled, (state, action) => {
             // reducer which will execute when the login thunk is fulfilled
             state.isLoggedIn = true;
-            state.role = action?.payload?.data?.data?.userRole,
-            state.data = action?.payload?.data?.data?.userData
+            state.role = action?.payload?.data?.data?.userRole;
+            state.data = action?.payload?.data?.data?.userData;
 
-            localStorage.setItem('isLoggedIn', true);
+            localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('role', action?.payload?.data?.data?.userRole);
             localStorage.setItem('data', JSON.stringify(action?.payload?.data?.data?.userData));
+            if (action?.payload?.data?.data?.token) {
+                localStorage.setItem('token', action.payload.data.data.token);
+            }
         })
-        .addCase(login.rejected, (state, action) => {
+        .addCase(login.rejected, (state) => {
             // reducer which will execute when the login thunk is rejected
             state.isLoggedIn = false;
             state.role = '';
@@ -75,12 +78,10 @@ const AuthSlice = createSlice({
         })
         .addCase(logout.fulfilled, (state) => {
             // reducer which will execute when the logout thunk is fulfilled
-            localStorage.setItem('isLoggedIn', false);
-            localStorage.setItem('role', '');
-            localStorage.setItem('data', JSON.stringify({}));
             state.isLoggedIn = false;
             state.role = '';
             state.data = {};
+            localStorage.clear();
         })
     }
 });

@@ -27,9 +27,10 @@ function Order() {
     const { cartsData } = useSelector((state) => state.cart);
 
     const [details, setDetails] = useState({
-        paymentMethod: 'OFFLINE',
+        paymentMethod: 'CASH',
         address: ''
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         async function fetchUserProfile() {
@@ -68,17 +69,33 @@ function Order() {
 
     async function handleFormSubmit(e) {
         e.preventDefault();
-        if (details.paymentMethod === '' || details.address === '') {
+
+        // Prevent double submission
+        if (isSubmitting) return;
+
+        if (!details.paymentMethod || !details.address.trim()) {
             toast.error("Please fill all the fields");
             return;
         }
 
-        const response = await dispatch(placeOrder(details));
-        if (response?.payload?.data?.success) {
-            toast.success('Order placed successfully');
-            navigate('/order/success');
-        } else {
-            toast.error('Something went wrong, cannot place order');
+        if (details.address.trim().length < 10) {
+            toast.error("Address should be at least 10 characters long");
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            const response = await dispatch(placeOrder(details));
+            if (response?.payload?.data?.success) {
+                toast.success('Order placed successfully');
+                navigate('/order/success');
+            } else {
+                toast.error(response?.payload?.data?.message || 'Something went wrong, cannot place order');
+            }
+        } catch (error) {
+            toast.error('Failed to place order');
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -114,7 +131,7 @@ function Order() {
                                     onChange={handleUserInput}
                                     className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 font-medium transition-all"
                                 >
-                                    <option value="OFFLINE">Cash / Pay Offline (Cash on Delivery)</option>
+                                    <option value="CASH">Cash / Pay Offline (Cash on Delivery)</option>
                                     <option value="ONLINE">UPI / Pay Online</option>
                                 </select>
                             </div>
@@ -144,6 +161,7 @@ function Order() {
                                 <textarea 
                                     name="address"
                                     required
+                                    minLength={10}
                                     placeholder="Enter your detailed address here (e.g. Room 204, Suvarnamukhi Hostel)..."
                                     value={details.address}
                                     onChange={handleUserInput}
@@ -152,15 +170,20 @@ function Order() {
                                 >
                                 </textarea>
                                 <p className="text-[11px] text-gray-400 mt-1">
-                                    Note: Your address will be saved for next time.
+                                    Note: Your address will be saved for next time. Minimum 10 characters required.
                                 </p>
                             </div>
 
                             <button 
                                 type="submit"
-                                className="w-full text-white bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 font-bold py-3 px-6 rounded-xl transition-all duration-300 transform active:scale-[0.98] shadow-lg hover:shadow-xl font-semibold button-bounce"
+                                disabled={isSubmitting}
+                                className={`w-full text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform shadow-lg hover:shadow-xl font-semibold button-bounce ${
+                                    isSubmitting
+                                        ? 'bg-gray-400 cursor-not-allowed opacity-75'
+                                        : 'bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 active:scale-[0.98]'
+                                }`}
                             >
-                                Place Order
+                                {isSubmitting ? 'Placing Order...' : 'Place Order'}
                             </button>
                         </form>
                     </div>

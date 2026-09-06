@@ -63,7 +63,8 @@ async function modifyCart(userId, productId, shouldAdd = true) {
 
     await cart.save();
 
-    return cart;
+    const populatedCart = await getCartByUserId(userId);
+    return populatedCart;
 
 }
 

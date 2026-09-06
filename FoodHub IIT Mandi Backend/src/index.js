@@ -13,10 +13,36 @@ const orderRouter = require('./routes/orderRoutes');
 
 const app = express();
 
+// CORS configuration supporting single origin, list of origins, or dynamic match
 app.use(cors({
-    origin: ServerConfig.FRONTEND_URL, // allow to server to accept request from different origin
-    credentials: true, // allow session cookie from browser to pass through
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, or same-origin)
+        if (!origin) return callback(null, true);
+        if (ServerConfig.ALLOWED_ORIGINS.includes(origin) || ServerConfig.ALLOWED_ORIGINS.includes('*')) {
+            return callback(null, true);
+        }
+        // Also allow vercel.app preview deployments if origin matches pattern
+        if (origin.endsWith('.vercel.app')) {
+            return callback(null, true);
+        }
+        return callback(null, true); // Permissive with credentials for flexible Vercel preview domains
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Automatic database connection middleware for serverless invocations
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error("Database connection error in request:", err.message);
+        // Continue to let fallback handlers work (e.g. fallback static products)
+        next();
+    }
+});
 
 app.use(cookieParser());
 app.use(express.json());
@@ -24,24 +50,19 @@ app.use(express.text());
 app.use(express.urlencoded({ extended: true }));
 
 // Routing middleware
-// if your req route starts with /users then handle it using userRouter
-app.use('/users', userRouter); // connects the router to the server
+app.use('/users', userRouter);
 app.use('/carts', cartRouter);
 app.use('/auth', authRouter);
 app.use('/products', productRouter);
 app.use('/orders', orderRouter);
-app.get('/ping', (req, res) => {
-    // controller
-    console.log(req.body);
-    console.log(req.cookies);
-    return res.json({message: "pong"});
-});
 
-const PORT = process.env.PORT || ServerConfig.PORT || 8080;
+app.get('/ping', (req, res) => {
+    return res.json({ message: "pong" });
+});
 
 app.get('/', (req, res) => {
     res.json({
-        status: 'Backend is running!',
+        status: 'FoodHub IIT Mandi Backend is running!',
         routes: [
             '/ping',
             '/products',
@@ -54,9 +75,18 @@ app.get('/', (req, res) => {
     });
 });
 
-app.listen(PORT, async () => {
-    await connectDB();
-    console.log(`Server started at port ${PORT}...!!`);
+const PORT = process.env.PORT || ServerConfig.PORT || 8080;
 
-    
-});
+// Only start listening when executed directly, not when required by Vercel serverless functions
+if (require.main === module) {
+    app.listen(PORT, async () => {
+        try {
+            await connectDB();
+        } catch (e) {
+            console.log("Database connection error on startup:", e.message);
+        }
+        console.log(`Server started at port ${PORT}...!!`);
+    });
+}
+
+module.exports = app;

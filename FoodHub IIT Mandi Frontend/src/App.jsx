@@ -27,16 +27,17 @@ function App() {
 
         <Route element={<RequireAuth />}>
           <Route path='/order' element={<Order />} />
-
           <Route path='/order/success' element={<OrderSuccess />} />
           <Route path='/orders' element={<OrderHistory />} />
           <Route path='/cart' element={<CartDetails />} />
-
         </Route>
         
+        {/* Protected Admin Routes */}
+        <Route element={<RequireAuth requiredRole="ADMIN" />}>
+          <Route path='/admin/addProduct' element={<AddProduct />} />
+          <Route path='/admin/orders' element={<AdminOrders />} />
+        </Route>
 
-        <Route path='/admin/addProduct' element={<AddProduct />} />
-        <Route path='/admin/orders' element={<AdminOrders />} />
         <Route path='/product/:productId' element={<ProductDetails />} />
         <Route path='*' element={<NotFound />} />
       </Routes>

@@ -3,7 +3,16 @@ const { JWT_SECRET, COOKIE_SECURE, FRONTEND_URL } = require('../config/serverCon
 const UnAuthorisedError = require('../utils/unauthorisedError');
 
 async function isLoggedIn(req, res, next) {
-    const token = req.cookies["authToken"];
+    let token = req.cookies ? req.cookies["authToken"] : null;
+    
+    // Also support Authorization header (Bearer <token>) for cross-domain compatibility
+    if (!token && req.headers && req.headers.authorization) {
+        const parts = req.headers.authorization.split(' ');
+        if (parts.length === 2 && parts[0] === 'Bearer') {
+            token = parts[1];
+        }
+    }
+
     if(!token) {
         return res.status(401).json({
             success: false,
@@ -37,15 +46,14 @@ async function isLoggedIn(req, res, next) {
         if(error.name === "TokenExpiredError") {
             res.cookie("authToken", "", {
                 httpOnly: true,
-                sameSite: "lax",
+                sameSite: COOKIE_SECURE ? "none" : "lax",
                 secure: COOKIE_SECURE,
-                maxAge: 7 * 24 * 60 * 60 * 1000,
-                domain: FRONTEND_URL
+                maxAge: 0
             });
-            return res.status(200).json({
-                success: true,
-                message: "Log out successfull",
-                error: {},
+            return res.status(401).json({
+                success: false,
+                message: "Session expired. Please log in again.",
+                error: error,
                 data: {}
             });
         }

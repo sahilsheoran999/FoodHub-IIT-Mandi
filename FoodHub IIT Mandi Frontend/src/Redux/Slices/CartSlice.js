@@ -68,13 +68,17 @@ const cartSlice = createSlice({
             // Handle cart fetch failure
         })
         .addCase(addProductToCart.fulfilled, (state, action) => {
-            // Cart updated successfully
+            if (action?.payload?.data?.data) {
+                state.cartsData = action.payload.data.data;
+            }
         })
         .addCase(addProductToCart.rejected, (state, action) => {
             // Handle add to cart failure
         })
         .addCase(removeProductFromCart.fulfilled, (state, action) => {
-            // Cart updated successfully
+            if (action?.payload?.data?.data) {
+                state.cartsData = action.payload.data.data;
+            }
         })
         .addCase(removeProductFromCart.rejected, (state, action) => {
             // Handle remove from cart failure

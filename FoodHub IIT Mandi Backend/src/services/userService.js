@@ -4,15 +4,19 @@ const { createcart } = require('../repositories/cartRepository');
 async function registerUser(userDetails) {
     // It will create a brand new user in the db
 
-    // 1. We need to check if the user with this email and mobile number already exists or not
+    // 1. We need to check if a user with either this email or mobile number already exists
     const user = await findUser({
-        email: userDetails.email,
-        mobileNumber: userDetails.mobileNumber
+        $or: [
+            { email: userDetails.email },
+            { mobileNumber: userDetails.mobileNumber }
+        ]
     });
 
     if(user) {
-        // we found a user
-        throw { reason: 'User with the given email and mobile number already exist', statusCode: 400 }
+        const reason = user.email === userDetails.email 
+            ? 'User with the given email already exists' 
+            : 'User with the given mobile number already exists';
+        throw { reason, statusCode: 400 };
     }
     
     // 2. If not then create the user in the database
@@ -30,8 +34,10 @@ async function registerUser(userDetails) {
 
     await createcart(newUser._id);
 
-    // 3. retuern the details of created user
-    return newUser;
+    // 3. return the details of created user (omit password)
+    const userObj = newUser.toObject ? newUser.toObject() : { ...newUser._doc };
+    delete userObj.password;
+    return userObj;
 }
 
 
@@ -40,7 +46,9 @@ async function getUserById(userId) {
     if(!user) {
         throw { reason: 'User not found', statusCode: 404 };
     }
-    return user;
+    const userObj = user.toObject ? user.toObject() : { ...user._doc };
+    delete userObj.password;
+    return userObj;
 }
 
 module.exports = {

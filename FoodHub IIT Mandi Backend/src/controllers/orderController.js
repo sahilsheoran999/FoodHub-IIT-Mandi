@@ -1,4 +1,4 @@
-const { createOrder, updateOrder, getAllOrdersCreatedByUser, getOrderDetailsById, getAllOrders } = require("../services/orderService");
+const { createOrder, updateOrder, getAllOrdersCreatedByUser, getOrderDetailsById, cancelUserOrder, getAllOrders } = require("../services/orderService");
 const AppError = require("../utils/appError");
 
 async function createNewOrder(req, res) {
@@ -59,7 +59,7 @@ async function getAllOrdersByUser(req, res) {
 
 async function getOrder(req, res) {
     try {
-        const order = await getOrderDetailsById(req.params.orderId);
+        const order = await getOrderDetailsById(req.params.orderId, req.user.id, req.user.role);
         return res.status(200).json({
             success: true,
             message: "Successfully fetched the order",
@@ -87,7 +87,7 @@ async function getOrder(req, res) {
 
 async function cancelOrder(req, res) {
     try {
-        const order = await updateOrder(req.params.orderId, "CANCELLED");
+        const order = await cancelUserOrder(req.params.orderId, req.user.id, req.user.role);
         return res.status(200).json({
             success: true,
             message: "Successfully updated the order",
