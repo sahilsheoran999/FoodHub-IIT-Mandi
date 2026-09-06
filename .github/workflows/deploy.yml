@@ -75,5 +75,5 @@ jobs:
           git rm -rf . || true
           cp -r "FoodHub IIT Mandi Frontend/dist/." .
           git add --all
-          git commit -m "Deploy frontend to GitHub Pages [skip ci]" || true
+          git commit -m "Deploy frontend to GitHub Pages [skip ci] [skip vercel]" || true
           git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
