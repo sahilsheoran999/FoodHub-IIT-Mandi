@@ -1,5 +1,5 @@
 const { findUser } = require("../repositories/userRepository");
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET, JWT_EXPIRY } = require("../config/serverConfig");
 
