@@ -13,19 +13,23 @@ const orderRouter = require('./routes/orderRoutes');
 
 const app = express();
 
-// CORS configuration supporting single origin, list of origins, or dynamic match
+// CORS configuration supporting configured frontend URL, vercel.app domains, and local dev
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps, curl, or same-origin)
         if (!origin) return callback(null, true);
-        if (ServerConfig.ALLOWED_ORIGINS.includes(origin) || ServerConfig.ALLOWED_ORIGINS.includes('*')) {
+        if (ServerConfig.ALLOWED_ORIGINS.includes(origin)) {
             return callback(null, true);
         }
-        // Also allow vercel.app preview deployments if origin matches pattern
+        // Also allow vercel.app preview and production deployments
         if (origin.endsWith('.vercel.app')) {
             return callback(null, true);
         }
-        return callback(null, true); // Permissive with credentials for flexible Vercel preview domains
+        // Allow local development
+        if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+            return callback(null, true);
+        }
+        return callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
